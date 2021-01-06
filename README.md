@@ -8,3 +8,5 @@ demo图例：https://cdn.nlark.com/yuque/0/2021/png/1485818/1609897596492-0ce714
 • 如何使用XLSX
 首先，官网这里的文件只需要用dist目录下的 xlsx.core.min.js 就足够了；xlsx.core.min.js主要是包含了基本的识别解析功能，xlsx.full.min.js则是包含了所有功能模块。然后在所在项目引入即可。
 下面演示的案例是在原生JS下写的，所以用的script标签引入的，若是Vue等框架项目可以用 npm 下载引入 XLSX即可。
+
+![image] https://cdn.nlark.com/yuque/0/2021/png/1485818/1609897596492-0ce714e3-bf3f-43aa-b8e2-89f9b45681ae.png
