@@ -9,9 +9,9 @@ function changes(e) {
         alert('获取到的表格数据', sheets);
       });
     } else {
-      alert('不支持该格式的解析');
+      alert('不支持该格式的解析，仅支持 .xls 或者 .xlsx 文件格式的解析');
     }
   } else {
-    alert('请选择文件上传');
+    console.log('请选择文件上传');
   }
-}
+} 

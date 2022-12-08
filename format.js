@@ -3,7 +3,7 @@ function fileToJson(file, callback) {
   let result;
   // 是否用BinaryString（字节字符串格式） 否则使用base64（二进制格式）
   let isBinary = true;
-
+  
   // 读取本地 Excel 文件
   var reader = new FileReader();
   reader.onload = function (e) {
@@ -61,7 +61,6 @@ function NounPluralizeToSingularize(data) {
   for (let i = 0; i < data.length; i++) {
     let phraseArr = data[i][0].split(" ");
     for (let j = 0; j < phraseArr.length; j++) {
-      console.log(phraseArr[i]);
       if (phraseArr[j] == "plus" || phraseArr[j] == "towards") {
         // debugger;
         phraseArr[j] = phraseArr[j];
@@ -107,7 +106,6 @@ function formatItemDate(data) {
       }
     });
   });
-  // console.log('data', data);
 }
 
 function formatItemMerge(sheetItem, data) {
