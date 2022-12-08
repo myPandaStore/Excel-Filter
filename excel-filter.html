@@ -4,21 +4,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
+  <title>Excel Filter</title>
 </head>
 <style>
   body {
-   text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
   }
 </style>
 
 <body>
+  <!-- 1.导入本地 Excel 数据 -->
   <input type="file" onchange="changes(event)" />
-  <div>上传后，请在控制台查看返回结果</div>
-</body>
+  <!-- 2.导出整理完毕的数据-->
+  <button onclick="ExportData()">导出数据</button>  
+
+
+</body> 
 
 </html>
 
+<script src="https://unpkg.com/inflected/dist/umd/inflected.min.js"></script>
 <script src="./xlsx.full.min.js"></script>
 <script src="./index.js"></script>
 <script src="./format.js"></script>
