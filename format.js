@@ -3,16 +3,19 @@ function fileToJson(file, callback) {
   let result;
   // 是否用BinaryString（字节字符串格式） 否则使用base64（二进制格式）
   let isBinary = true;
-  
+
   // 读取本地 Excel 文件
   var reader = new FileReader();
+  // debugger
   reader.onload = function (e) {
     var data = e.target.result;
+    // debugger
     if (isBinary) {
       result = XLSX.read(data, {
         type: "binary",
         cellDates: true,
       });
+      // debugger
     } else {
       result = XLSX.read(btoa(fixdata(data)), {
         type: "base64",
@@ -32,17 +35,21 @@ function fileToJson(file, callback) {
 function formatResult(data, callback) {
   // 获取总数据
   const sheets = data.Sheets;
+  // debugger
   // 获取每个表格
   const sheetItem = Object.keys(sheets);
+  // debugger
   // 返回sheetJSON数据源
   let sheetArr = [];
   // 获取
   sheetItem.forEach((item) => {
     const sheetJson = XLSX.utils.sheet_to_json(sheets[item], { header: 1 });
+    // debugger
     // 格式化Item时间数据
     formatItemDate(sheetJson);
     // 将名词复数转变成单数并去重（补充去重逻辑）
     NounPluralizeToSingularize(sheetJson);
+    // debugger;
     // 格式化Item合并数据
     formatItemMerge(sheets[item], sheetJson);
     // 组合数据
@@ -55,34 +62,49 @@ function formatResult(data, callback) {
   callback(sheetArr);
 }
 
+// list 存储最后整理完毕需要导出的数据
 let list = [];
-function NounPluralizeToSingularize(data) {
-  let newArr = [];
-  for (let i = 0; i < data.length; i++) {
-    let phraseArr = data[i][0].split(" ");
-    for (let j = 0; j < phraseArr.length; j++) {
-      if (phraseArr[j] == "plus" || phraseArr[j] == "towards") {
-        // debugger;
-        phraseArr[j] = phraseArr[j];
-        //   phraseArr[j] = Inflector.pluralize(phraseArr[j]);
-      } else {
-        phraseArr[j] = Inflector.singularize(phraseArr[j]);
+function NounPluralizeToSingularize(sheetJson) {
+  let newArr = [], size = 10
+  for (let i = 0; i < sheetJson.length; i++) {
+    // 当前行
+    let currentRow = sheetJson[i];
+    for (let j = 0; j < currentRow.length; j++) {
+      if (typeof currentRow[j] === 'number') {
+        currentRow[j] = String(currentRow[j])
       }
+      let phraseArr = currentRow[j].split(" ");
+      for (let k = 0; k < phraseArr.length; k++) {
+        if (phraseArr[k] == "plus" || phraseArr[k] == "towards") {
+          phraseArr[k] = phraseArr[k];
+        } else {
+          phraseArr[k] = Inflector.singularize(phraseArr[k]);
+        }
+      }
+      let res = phraseArr.join(" ");
+      newArr.push(res);
     }
-    let res = phraseArr.join(" ");
-    newArr.push(res);
   }
   newArr = unique(newArr);
   newArr = upSort(newArr);
-  let newObj = Object.assign({}, newArr);
-  if (newObj) {
-    for (var key in newObj) {
-      var temp = {};
-      temp.key = newObj[key];
-      list.push(temp);
-    }
+  size = Number(window.localStorage.getItem('size')) || size
+  newArr = sliceArray(newArr, size)
+  for (let i = 0; i < newArr.length; i++) {
+    let newObj = Object.assign({}, newArr[i]);
+    list.push(newObj)
   }
-  return newArr;
+}
+function chooseLength(e) {
+  let value = e.target.value
+  window.localStorage.setItem("size", value)
+}
+// 数组拆分
+function sliceArray(arr,size) {
+  var newArr = []
+  for (var i = 0; i < arr.length; i=i+size) {
+    newArr.push(arr.slice(i,i+size))
+  }
+  return newArr
 }
 
 // 去重
@@ -143,6 +165,7 @@ function fixdata(data) {
   o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)));
   return o;
 }
+
 
 // 导出数据
 function ExportData() {

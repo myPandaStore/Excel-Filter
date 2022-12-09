@@ -1,4 +1,3 @@
-const file = document.querySelector('input');
 function changes(e) {
   if (e.target.files.length > 0) {
     const fileName = e.target.files[0].name;  
