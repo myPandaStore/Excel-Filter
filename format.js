@@ -40,9 +40,9 @@ function formatResult(data, callback) {
   sheetItem.forEach((item) => {
     const sheetJson = XLSX.utils.sheet_to_json(sheets[item], {
       header: 1,
-      defval: ''
+      defval: "",
     });
-    let transposeSheetJson = transpose(sheetJson)
+    let transposeSheetJson = transpose(sheetJson);
     // 格式化Item时间数据
     formatItemDate(sheetJson);
     // 将名词复数转变成单数并去重（补充去重逻辑）
@@ -59,29 +59,56 @@ function formatResult(data, callback) {
   callback(sheetArr);
 }
 
+// 特殊的词处理名词单数变复数需要排除
+let specialMap = [
+  "this",
+  "was",
+  "is",
+  "has",
+  "plus",
+  "towards",
+  "kiss",
+  "discuss",
+  "toss",
+  "pass",
+  "miss",
+  "plus",
+  "piss",
+  "abyss",
+  "focus",
+  "guess",
+  "emboss",
+  "abyss",
+  "address",
+];
+let map = new Map()
+for (let i = 0; i < specialMap.length; i++) {
+  map.set(specialMap[i],specialMap[i])
+}
+specialMap = map
 // finalData 存储最后整理完毕需要导出的数据
-let finalData = []
+let finalData = [];
 function NounPluralizeToSingularize(sheetJson) {
   // 获取最长列的数据长度
-  let sheetJsonLength = sheetJson[0].length
- 
+  let sheetJsonLength = sheetJson[0].length;
+
   // 遍历每一行
   for (let i = 0; i < sheetJson.length; i++) {
-    let newArr = []
+    let newArr = [];
     let currentRow = sheetJson[i];
-    let phraseArr = []
-    let res
+    let phraseArr = [];
+    let res;
     // 遍历每一个短语
     for (let j = 0; j < currentRow.length; j++) {
-      if (typeof currentRow[j] === 'number') {
-        currentRow[j] = String(currentRow[j])
+      if (typeof currentRow[j] === "number") {
+        currentRow[j] = String(currentRow[j]);
       }
       // 将当前行的当前 phrase 按照空格进行分割
       phraseArr = currentRow[j].split(" ");
       // 遍历当前 phrase 的每一个单词
       for (let k = 0; k < phraseArr.length; k++) {
         // 特殊介词不处理
-        if (phraseArr[k] == "plus" || phraseArr[k] == "towards" || phraseArr[k] == 'is') {
+        if (specialMap.has(phraseArr[k])) {
           phraseArr[k] = phraseArr[k];
         } else {
           // 名词复数转单数
@@ -89,47 +116,47 @@ function NounPluralizeToSingularize(sheetJson) {
         }
       }
       res = phraseArr.join(" ");
-      newArr.push(res)
+      newArr.push(res);
     }
     // 当前 excel 列处理好的数据进行去重排序处理（一列只存储特定品类数据）
     newArr = upSort(newArr);
     newArr = unique(newArr).slice(1);
     // 添加空串占位
-    let addEmptyStringArr = new Array(sheetJsonLength - newArr.length).fill('')
-    newArr = newArr.concat(addEmptyStringArr)
-    finalData.push(newArr)
+    let addEmptyStringArr = new Array(sheetJsonLength - newArr.length).fill("");
+    newArr = newArr.concat(addEmptyStringArr);
+    finalData.push(newArr);
   }
-  finalData = transpose(finalData)
+  finalData = transpose(finalData);
   for (let i = 0; i < finalData.length; i++) {
-    finalData[i] = Object.assign({},finalData[i])
+    finalData[i] = Object.assign({}, finalData[i]);
   }
 }
 
 // 补充空串
-function replenishEmptyString(newArr,sheetJsonLength) {
-  let len = newArr.length
+function replenishEmptyString(newArr, sheetJsonLength) {
+  let len = newArr.length;
   for (let i = len; len < sheetJsonLength; i++) {
-    newArr.push('')
+    newArr.push("");
   }
-  return newArr
+  return newArr;
 }
 // 二维数据行列转换
 function transpose(arr) {
   var newArray = arr[0].map(function (col, i) {
     return arr.map(function (row) {
       return row[i];
-    })
+    });
   });
-  return newArray
+  return newArray;
 }
 
 // 数组拆分
 function sliceArray(arr, size) {
-  var newArr = []
+  var newArr = [];
   for (var i = 0; i < arr.length; i = i + size) {
-    newArr.push(arr.slice(i, i + size))
+    newArr.push(arr.slice(i, i + size));
   }
-  return newArr
+  return newArr;
 }
 
 // 去重
