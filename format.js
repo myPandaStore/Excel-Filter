@@ -81,7 +81,7 @@ function NounPluralizeToSingularize(sheetJson) {
       // 遍历当前 phrase 的每一个单词
       for (let k = 0; k < phraseArr.length; k++) {
         // 特殊介词不处理
-        if (phraseArr[k] == "plus" || phraseArr[k] == "towards") {
+        if (phraseArr[k] == "plus" || phraseArr[k] == "towards" || phraseArr[k] == 'is') {
           phraseArr[k] = phraseArr[k];
         } else {
           // 名词复数转单数
