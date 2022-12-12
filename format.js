@@ -6,16 +6,13 @@ function fileToJson(file, callback) {
 
   // 读取本地 Excel 文件
   var reader = new FileReader();
-  // debugger
   reader.onload = function (e) {
     var data = e.target.result;
-    // debugger
     if (isBinary) {
       result = XLSX.read(data, {
         type: "binary",
         cellDates: true,
       });
-      // debugger
     } else {
       result = XLSX.read(btoa(fixdata(data)), {
         type: "base64",
@@ -35,21 +32,21 @@ function fileToJson(file, callback) {
 function formatResult(data, callback) {
   // 获取总数据
   const sheets = data.Sheets;
-  // debugger
   // 获取每个表格
   const sheetItem = Object.keys(sheets);
-  // debugger
   // 返回sheetJSON数据源
   let sheetArr = [];
   // 获取
   sheetItem.forEach((item) => {
-    const sheetJson = XLSX.utils.sheet_to_json(sheets[item], { header: 1 });
-    // debugger
+    const sheetJson = XLSX.utils.sheet_to_json(sheets[item], {
+      header: 1,
+      defval: ''
+    });
+    let transposeSheetJson = transpose(sheetJson)
     // 格式化Item时间数据
     formatItemDate(sheetJson);
     // 将名词复数转变成单数并去重（补充去重逻辑）
-    NounPluralizeToSingularize(sheetJson);
-    // debugger;
+    NounPluralizeToSingularize(transposeSheetJson);
     // 格式化Item合并数据
     formatItemMerge(sheets[item], sheetJson);
     // 组合数据
@@ -62,47 +59,75 @@ function formatResult(data, callback) {
   callback(sheetArr);
 }
 
-// list 存储最后整理完毕需要导出的数据
-let list = [];
+// finalData 存储最后整理完毕需要导出的数据
+let finalData = []
 function NounPluralizeToSingularize(sheetJson) {
-  let newArr = [], size = 10
+  // 获取最长列的数据长度
+  let sheetJsonLength = sheetJson[0].length
+ 
+  // 遍历每一行
   for (let i = 0; i < sheetJson.length; i++) {
-    // 当前行
+    let newArr = []
     let currentRow = sheetJson[i];
+    let phraseArr = []
+    let res
+    // 遍历每一个短语
     for (let j = 0; j < currentRow.length; j++) {
       if (typeof currentRow[j] === 'number') {
         currentRow[j] = String(currentRow[j])
       }
-      let phraseArr = currentRow[j].split(" ");
+      // 将当前行的当前 phrase 按照空格进行分割
+      phraseArr = currentRow[j].split(" ");
+      // 遍历当前 phrase 的每一个单词
       for (let k = 0; k < phraseArr.length; k++) {
+        // 特殊介词不处理
         if (phraseArr[k] == "plus" || phraseArr[k] == "towards") {
           phraseArr[k] = phraseArr[k];
         } else {
+          // 名词复数转单数
           phraseArr[k] = Inflector.singularize(phraseArr[k]);
         }
       }
-      let res = phraseArr.join(" ");
-      newArr.push(res);
+      res = phraseArr.join(" ");
+      newArr.push(res)
     }
+    // 当前 excel 列处理好的数据进行去重排序处理（一列只存储特定品类数据）
+    newArr = upSort(newArr);
+    newArr = unique(newArr).slice(1);
+    // 添加空串占位
+    let addEmptyStringArr = new Array(sheetJsonLength - newArr.length).fill('')
+    newArr = newArr.concat(addEmptyStringArr)
+    finalData.push(newArr)
   }
-  newArr = unique(newArr);
-  newArr = upSort(newArr);
-  size = Number(window.localStorage.getItem('size')) || size
-  newArr = sliceArray(newArr, size)
-  for (let i = 0; i < newArr.length; i++) {
-    let newObj = Object.assign({}, newArr[i]);
-    list.push(newObj)
+  finalData = transpose(finalData)
+  for (let i = 0; i < finalData.length; i++) {
+    finalData[i] = Object.assign({},finalData[i])
   }
 }
-function chooseLength(e) {
-  let value = e.target.value
-  window.localStorage.setItem("size", value)
+
+// 补充空串
+function replenishEmptyString(newArr,sheetJsonLength) {
+  let len = newArr.length
+  for (let i = len; len < sheetJsonLength; i++) {
+    newArr.push('')
+  }
+  return newArr
 }
+// 二维数据行列转换
+function transpose(arr) {
+  var newArray = arr[0].map(function (col, i) {
+    return arr.map(function (row) {
+      return row[i];
+    })
+  });
+  return newArray
+}
+
 // 数组拆分
-function sliceArray(arr,size) {
+function sliceArray(arr, size) {
   var newArr = []
-  for (var i = 0; i < arr.length; i=i+size) {
-    newArr.push(arr.slice(i,i+size))
+  for (var i = 0; i < arr.length; i = i + size) {
+    newArr.push(arr.slice(i, i + size))
   }
   return newArr
 }
@@ -115,6 +140,7 @@ function unique(arr) {
 function upSort(arr) {
   return arr.sort((a, b) => a.length - b.length);
 }
+
 function formatItemDate(data) {
   data.forEach((row) => {
     row.forEach((item, index) => {
@@ -166,11 +192,9 @@ function fixdata(data) {
   return o;
 }
 
-
 // 导出数据
 function ExportData() {
-  //相关连接http://www.qinluo1023.com/2018/07/03/JS%E8%AF%BB%E5%8F%96%E6%9C%AC%E5%9C%B0EXCEL%E6%96%87%E4%BB%B6.html
-  var data = list;
+  var data = finalData;
 
   /* 创建worksheet */
   var ws = XLSX.utils.json_to_sheet(data, {

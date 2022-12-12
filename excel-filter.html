@@ -13,18 +13,13 @@
     align-items: center;
     height: 100vh;
   }
-  .import:hover {
-    background-color: #efefef;
-  }
 </style>
 
 <body>
 
   <!-- 1.导入本地 Excel 数据 -->
   <input class="import" type="file" onchange="changes(event)" />
-  <!-- 2.选择导出的每一行数据长度，默认为 10-->
-  <input id="length" type="text" placeholder="输入需要导出的数据长度" onchange="chooseLength(event)">
-  <!-- 3.导出整理完毕的数据-->
+  <!-- 2.导出整理完毕的数据-->
   <button onclick="ExportData()">导出数据</button>  
 </body> 
 
